@@ -30,11 +30,11 @@ func (dbCtx DatabaseCtx)CreateMongoConnection() (*mongo.Client, error) {
 	if err != nil {
 		return  nil, err
 	}
-	dbCtx.logger.InfoLog.Info("Database is connected")
 	err = client.Ping(dbCtx.context, readpref.Primary())
 	if err != nil {
 		return nil, err
 	}
+	dbCtx.logger.InfoLog.Info("Database is connected")
 	return client, err
 }
 

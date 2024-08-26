@@ -11,8 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-
-
 func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -25,32 +23,37 @@ func main() {
 	if err != nil {
 		app.ErrorLog.DPanicf("While creating DB connection %v", err)
 	}
-	defer func (ctx database.DatabaseCtx, client *mongo.Client)  {
-		if err = ctx.DiscountMongoConnection(client); err != nil	{
+	defer func(ctx database.DatabaseCtx, client *mongo.Client) {
+		if err = ctx.DiscountMongoConnection(client); err != nil {
 			app.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
-	createAndStartServer(":8080", getRoutes(), *app)
-
+	createAndStartServer(ctx, ":8080", getRoutes(), *app)
 }
 
 // CreateAndStartServer creates a new server and starting listing
-func createAndStartServer(addr string, handlers http.Handler, app config.Application) error {
+func createAndStartServer(ctx context.Context, addr string, handlers http.Handler, app config.Application) error {
 	srv := &http.Server{
-		Addr: addr,
-		Handler: handlers,
-		ReadTimeout: 10 * time.Second,
+		Addr:         addr,
+		Handler:      handlers,
+		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 	app.InfoLog.Infof("Server started at %s", addr)
 	err := srv.ListenAndServe()
 	if err != nil {
-		return err
+		go func(ctx context.Context, app config.Application) {
+			shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+			if err := srv.Shutdown(shutdownCtx); err != nil {
+				app.ErrorLog.DPanicf("error shutting down server %v", err)
+			}
+		}(ctx, app)
 	}
 	return nil
 }
 
 func getRoutes() *http.ServeMux {
-	mux := http.NewServeMux() 
+	mux := http.NewServeMux()
 	return mux
-} 
+}
