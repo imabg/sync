@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/imabg/sync/internal/config"
@@ -29,6 +30,27 @@ func main() {
 			app.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
-	
+	createAndStartServer(":8080", getRoutes(), *app)
 
 }
+
+// CreateAndStartServer creates a new server and starting listing
+func createAndStartServer(addr string, handlers http.Handler, app config.Application) error {
+	srv := &http.Server{
+		Addr: addr,
+		Handler: handlers,
+		ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+	app.InfoLog.Infof("Server started at %s", addr)
+	err := srv.ListenAndServe()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getRoutes() *http.ServeMux {
+	mux := http.NewServeMux() 
+	return mux
+} 
