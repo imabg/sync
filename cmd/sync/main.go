@@ -12,13 +12,14 @@ import (
 )
 
 func main() {
+	env := config.NewEnv()
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
-	app := &config.Application{ErrorLog: sugar.Named("Error"), InfoLog: sugar.Named("Info")}
+	app := &config.Application{ErrorLog: sugar.Named("Error"), InfoLog: sugar.Named("Info"), Env: *env}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	dbCtx := database.NewDB(ctx, *app, "")
+	dbCtx := database.NewDB(ctx, *app)
 	client, err := dbCtx.CreateMongoConnection()
 	if err != nil {
 		app.ErrorLog.DPanicf("While creating DB connection %v", err)
@@ -28,7 +29,7 @@ func main() {
 			app.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
-	createAndStartServer(ctx, ":8080", getRoutes(), *app)
+	createAndStartServer(ctx, app.Env.ServerAddr, getRoutes(), *app)
 }
 
 // CreateAndStartServer creates a new server and starting listing
