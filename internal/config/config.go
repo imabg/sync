@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -11,11 +12,13 @@ type Application struct {
 	ErrorLog *zap.SugaredLogger
 	InfoLog  *zap.SugaredLogger
 	Env      Env
+	Client *mongo.Client
 }
 
 type Env struct {
 	ServerAddr string `mapstructure:"PORT"`
 	MongoURI   string `mapstructure:"MONGO_URI"`
+	DBName string `mapstucture:"DB_NAME"`
 }
 
 func NewEnv() *Env {

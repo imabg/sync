@@ -5,8 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/imabg/sync/internal/config"
+	"github.com/imabg/sync/internal/controller"
 	"github.com/imabg/sync/internal/database"
+	"github.com/imabg/sync/pkg/validate"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -16,6 +19,7 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
+	validate.SetupValidation()
 	app := &config.Application{ErrorLog: sugar.Named("Error"), InfoLog: sugar.Named("Info"), Env: *env}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -29,7 +33,8 @@ func main() {
 			app.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
-	createAndStartServer(ctx, app.Env.ServerAddr, getRoutes(), *app)
+	app.Client = client
+	createAndStartServer(ctx, app.Env.ServerAddr, getRoutes(app), *app)
 }
 
 // CreateAndStartServer creates a new server and starting listing
@@ -54,7 +59,10 @@ func createAndStartServer(ctx context.Context, addr string, handlers http.Handle
 	return nil
 }
 
-func getRoutes() *http.ServeMux {
-	mux := http.NewServeMux()
-	return mux
+func getRoutes(app *config.Application) *mux.Router {
+	r := mux.NewRouter().StrictSlash(true)
+	userCtrl := controller.NewUser(app)	
+	userRoutes := r.PathPrefix("/users")
+	userRoutes.HandlerFunc(userCtrl.CreateUser).Methods("POST")
+	return r
 }
