@@ -12,13 +12,13 @@ type Application struct {
 	ErrorLog *zap.SugaredLogger
 	InfoLog  *zap.SugaredLogger
 	Env      Env
-	Client *mongo.Client
+	MongoClient *mongo.Database
 }
 
 type Env struct {
 	ServerAddr string `mapstructure:"PORT"`
 	MongoURI   string `mapstructure:"MONGO_URI"`
-	DBName string `mapstucture:"DB_NAME"`
+	DBName string `mapstructure:"DB_NAME"`
 }
 
 func NewEnv() *Env {

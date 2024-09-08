@@ -40,3 +40,7 @@ func (dbCtx DatabaseCtx) CreateMongoConnection() (*mongo.Client, error) {
 func (dbCtx DatabaseCtx) DiscountMongoConnection(client *mongo.Client) error {
 	return client.Disconnect(dbCtx.context)
 }
+
+func (dbCtx DatabaseCtx) GetMongoDatabase(client *mongo.Client) *mongo.Database {
+	return client.Database(dbCtx.config.Env.DBName)
+}

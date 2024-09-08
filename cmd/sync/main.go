@@ -38,7 +38,7 @@ func main() {
 			app.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
-	app.Client = client
+	app.MongoClient = dbCtx.GetMongoDatabase(client)
   stopChan := make(chan os.Signal, 1)
     signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
@@ -80,8 +80,9 @@ func createAndStartServer(addr string, handlers http.Handler, app config.Applica
 
 func getRoutes(app *config.Application) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
+	v1Routes := r.PathPrefix("/api/v1").Subrouter()
 	userCtrl := controller.NewUser(app)
-	userRoutes := r.PathPrefix("/users")
-	userRoutes.HandlerFunc(userCtrl.CreateUser).Methods("POST")
+	userRoutes := v1Routes.PathPrefix("/users").Subrouter()
+	userRoutes.HandleFunc("/create",userCtrl.CreateUser).Methods("POST")
 	return r
 }
