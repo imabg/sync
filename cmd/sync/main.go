@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,6 +16,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
+var serverStopCtx context.CancelFunc
+var serverCtx context.Context
 
 func main() {
 	env := config.NewEnv()
@@ -34,11 +39,20 @@ func main() {
 		}
 	}(*dbCtx, client)
 	app.Client = client
-	createAndStartServer(ctx, app.Env.ServerAddr, getRoutes(app), *app)
+  stopChan := make(chan os.Signal, 1)
+    signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
+
+    go func() {
+        <-stopChan
+        app.InfoLog.Info("Stopping server...")
+        serverStopCtx() // Call the serverStopCtx function to stop the server
+    }()
+
+	createAndStartServer(app.Env.ServerAddr, getRoutes(app), *app)
 }
 
 // CreateAndStartServer creates a new server and starting listing
-func createAndStartServer(ctx context.Context, addr string, handlers http.Handler, app config.Application) error {
+func createAndStartServer(addr string, handlers http.Handler, app config.Application) error {
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      handlers,
@@ -46,22 +60,27 @@ func createAndStartServer(ctx context.Context, addr string, handlers http.Handle
 		WriteTimeout: 10 * time.Second,
 	}
 	app.InfoLog.Infof("Server started at %s", addr)
-	err := srv.ListenAndServe()
-	if err != nil {
-		go func(ctx context.Context, app config.Application) {
-			shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-			defer cancel()
-			if err := srv.Shutdown(shutdownCtx); err != nil {
-				app.ErrorLog.DPanicf("error shutting down server %v", err)
-			}
-		}(ctx, app)
+	serverCtx, serverStopCtx = context.WithCancel(context.Background())
+	go func() {
+		<-serverCtx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			app.ErrorLog.DPanicf("error shutting down server: %v", err)
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		app.ErrorLog.DPanicf("error starting server: %v", err)
+		serverStopCtx() // Stop the server
+		return err
 	}
 	return nil
 }
 
 func getRoutes(app *config.Application) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
-	userCtrl := controller.NewUser(app)	
+	userCtrl := controller.NewUser(app)
 	userRoutes := r.PathPrefix("/users")
 	userRoutes.HandlerFunc(userCtrl.CreateUser).Methods("POST")
 	return r
