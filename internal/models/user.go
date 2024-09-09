@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/imabg/sync/pkg/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -39,12 +40,11 @@ func(userCtx *UserCtx) InsertOne(ctx context.Context, data *User) error {
 	return err
 }
 
-//TODO: need to fix
-func (userCtx *UserCtx) FindOne(ctx context.Context, filter interface{}) (error) {
-	var user User
-	_ = userCtx.col.FindOne(ctx, filter).Decode(&user)
-	if user.UserId != "" {
-		return errors.New("duplicate user exists")
+func (userCtx *UserCtx) FindOne(ctx context.Context, condition bson.M) (error) {
+	err := userCtx.col.FindOne(ctx, &condition)
+	// we get err if no document found 
+	if err.Err() == nil {
+	return errors.New("User already exists")
 	}
 	return nil
 }

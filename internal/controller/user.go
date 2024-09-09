@@ -9,6 +9,7 @@ import (
 	"github.com/imabg/sync/pkg/errors"
 	"github.com/imabg/sync/pkg/response"
 	"github.com/imabg/sync/pkg/validate"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type IUser interface {
@@ -40,9 +41,9 @@ func(u *UserCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 		response.SendWithError(w, http.StatusBadRequest, *custErr)
 		return
 	}
-	err = u.userModel.FindOne(u.userCtx, user)
+	err = u.userModel.FindOne(u.userCtx, bson.M{"email": user.Email})
 	if err != nil {
-		custErr := errors.NewCustomError(http.StatusBadRequest, err.Error(), "", "")
+		custErr := errors.NewCustomError(http.StatusConflict, err.Error(), "", "")
 		response.SendWithError(w, http.StatusBadRequest, *custErr)
 		return
 	}
