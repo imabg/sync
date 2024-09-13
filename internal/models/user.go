@@ -53,10 +53,8 @@ func (userCtx *UserCtx) CreateTimelineEvent(op string, done bool) OnboardingTime
 
 // InsertOne insert single user record
 func (userCtx *UserCtx) InsertOne(ctx context.Context, data *User) error {
-	data.CreatedAt = time.Now()
-	data.UpdatedAt = time.Now()
 	_, err := userCtx.col.InsertOne(ctx, &data)
-	// Need to create a transaction for adding onboarding-event
+	//TODO:  Need to create a transaction for adding onboarding-event
 	return err
 }
 

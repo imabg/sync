@@ -1,12 +1,16 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 const (
 	VALIDATION_ERROR = "validation error"
 	DATABASE_ERROR = "database error"
 	NOT_FOUND = "not found"
 	INTERNAL_SERVER_ERROR = "internal server error"
+	CONFLICT_ERROR = "conflict error"
 )
 
 type myError struct {
@@ -34,4 +38,25 @@ func NewCustomError(code int, msg string, additionalCode string, additionalMsg s
 
 func (e CustomError) Error() string {
 	return fmt.Sprint(e.Msg)
+}
+
+func BadRequestError(msg string) *CustomError{
+	return &CustomError{
+		Code: http.StatusBadRequest,
+		Msg: msg,
+	}
+}
+
+func ConflictError(msg string) *CustomError {
+	return &CustomError{
+		Code: http.StatusConflict,
+		Msg: msg,
+	}
+}
+
+func NotFound(msg string) *CustomError {
+	return &CustomError{
+		Code: http.StatusNotFound,
+		Msg: msg,
+	}
 }

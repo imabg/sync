@@ -25,17 +25,18 @@ func main() {
 	defer logger.Sync()
 	sugar := logger.Sugar()
 	validate.SetupValidation()
-	app := &config.Application{ErrorLog: sugar.Named("Error"), InfoLog: sugar.Named("Info"), Env: *env}
+	log := &config.Logger{ErrorLog: sugar.Named("Error"), InfoLog: sugar.Named("Info")}
+	app := &config.Application{Env: *env, Log: *log}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	dbCtx := database.NewDB(ctx, *app)
 	client, err := dbCtx.CreateMongoConnection()
 	if err != nil {
-		app.ErrorLog.DPanicf("While creating DB connection %v", err)
+		app.Log.ErrorLog.DPanicf("While creating DB connection %v", err)
 	}
 	defer func(ctx database.DatabaseCtx, client *mongo.Client) {
 		if err = ctx.DiscountMongoConnection(client); err != nil {
-			app.ErrorLog.DPanicf("While closing DB connection %v", err)
+			app.Log.ErrorLog.DPanicf("While closing DB connection %v", err)
 		}
 	}(*dbCtx, client)
 	app.MongoClient = dbCtx.GetMongoDatabase(client)
@@ -44,7 +45,7 @@ func main() {
 
     go func() {
         <-stopChan
-        app.InfoLog.Info("Stopping server...")
+        app.Log.InfoLog.Info("Stopping server...")
         serverStopCtx() // Call the serverStopCtx function to stop the server
     }()
 
@@ -59,19 +60,19 @@ func createAndStartServer(addr string, handlers http.Handler, app config.Applica
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	app.InfoLog.Infof("Server started at %s", addr)
+	app.Log.InfoLog.Infof("Server started at %s", addr)
 	serverCtx, serverStopCtx = context.WithCancel(context.Background())
 	go func() {
 		<-serverCtx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			app.ErrorLog.DPanicf("error shutting down server: %v", err)
+			app.Log.ErrorLog.DPanicf("error shutting down server: %v", err)
 		}
 	}()
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		app.ErrorLog.DPanicf("error starting server: %v", err)
+		app.Log.ErrorLog.DPanicf("error starting server: %v", err)
 		serverStopCtx() // Stop the server
 		return err
 	}

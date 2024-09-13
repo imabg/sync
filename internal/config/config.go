@@ -9,10 +9,14 @@ import (
 )
 
 type Application struct {
-	ErrorLog *zap.SugaredLogger
-	InfoLog  *zap.SugaredLogger
+	Log Logger
 	Env      Env
 	MongoClient *mongo.Database
+}
+
+type Logger struct {
+	ErrorLog *zap.SugaredLogger
+	InfoLog  *zap.SugaredLogger
 }
 
 type Env struct {

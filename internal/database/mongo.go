@@ -12,12 +12,14 @@ import (
 type DatabaseCtx struct {
 	context context.Context
 	config  config.Application
+	log config.Logger
 }
 
 func NewDB(ctx context.Context, config config.Application) *DatabaseCtx {
 	return &DatabaseCtx{
 		context: ctx,
 		config:  config,
+		log: config.Log,
 	}
 }
 
@@ -32,7 +34,7 @@ func (dbCtx DatabaseCtx) CreateMongoConnection() (*mongo.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbCtx.config.InfoLog.Info("Database is connected")
+	dbCtx.log.InfoLog.Info("Database is connected")
 	return client, err
 }
 

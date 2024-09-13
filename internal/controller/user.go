@@ -9,6 +9,7 @@ import (
 	"github.com/imabg/sync/pkg/errors"
 	"github.com/imabg/sync/pkg/response"
 	"github.com/imabg/sync/pkg/validate"
+	"github.com/imabg/sync/services/user"
 )
 
 type IUser interface {
@@ -17,33 +18,34 @@ type IUser interface {
 
 type UserCtx struct {
 		userCtx context.Context
-		userModel *models.UserCtx
+		service user.UserServiceCtx
 		config config.Application
+		log config.Logger
 }
 
 func NewUser(app *config.Application) IUser {
 	ctx := context.Background()
-	userCol := models.NewUserModel(*app.MongoClient)
 	return &UserCtx{
-		userModel: userCol,
 		config: *app,
+		service: *user.UserServiceInit(app),
 		userCtx: ctx,
+		log: app.Log,
 	} 
 }
 
 func(u *UserCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
-	// op := "user.CreateUser"
+	op := "user.CreateUser"
+	u.log.InfoLog.Infof("[UserController]: started %s", op)
+	defer u.log.InfoLog.Infof("[UserController]: finished %s", op)
 	var user models.User
 	err := validate.GetPayload(r, &user)
 	if err != nil {
-		custErr := errors.NewCustomError(http.StatusBadRequest, err.Error(), "", "")	
-		response.SendWithError(w, http.StatusBadRequest, *custErr)
+		response.SendWithError(w, http.StatusBadRequest, *errors.BadRequestError(err.Error()))
 		return
 	}
-	err = u.userModel.InsertOne(u.userCtx, &user)
+	err = u.service.CreateNewUser(u.userCtx, &user)
 	if err != nil {
-		custErr := errors.NewCustomError(http.StatusBadRequest, err.Error(), "", "")	
-		response.SendWithError(w, http.StatusInternalServerError, *custErr)
+		response.SendWithError(w, http.StatusInternalServerError, *errors.BadRequestError(err.Error()))
 		return
 	}
 	response.Send(w, http.StatusCreated, user)

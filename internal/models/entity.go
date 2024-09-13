@@ -2,10 +2,8 @@ package models
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/imabg/sync/pkg/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -33,22 +31,11 @@ func NewEntityModel (client mongo.Database) *EntityCtx {
 }
 
 func (e *EntityCtx) Insert(ctx context.Context, data *Entity) error {
-	data.UserId = uuid.GenerateShortId(8)
-	// Create password
-	err := e.encryptPwd(data)
-	if err != nil {
-		return  err
-	}
-	data.CreatedAt = time.Now()
-	data.UpdatedAt = time.Now()
-	_, err = e.col.InsertOne(ctx, &data)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := e.col.InsertOne(ctx, &data)
+	return err	
 }
 
-func (e *EntityCtx) encryptPwd(data *Entity) error {
+func (e *EntityCtx) EncryptPwd(data *Entity) error {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(data.Password), 14)
 	if err != nil {
 		return err
@@ -62,10 +49,6 @@ func (e *EntityCtx) IsPwdCorrect(hashPwd string, currentPlainPwd string) bool {
 	return err == nil	
 }
 
-func (e *EntityCtx) FindOne(ctx context.Context, data bson.M, entity *Entity) error {
-	err := e.col.FindOne(ctx, &data).Decode(entity)
-	if err == nil {
-		return errors.New("User already exists")
-	}
-	return nil
+func (e *EntityCtx) FindOne(ctx context.Context, data bson.M, entity *Entity) (error){
+	return e.col.FindOne(ctx, &data).Decode(entity)
 }
