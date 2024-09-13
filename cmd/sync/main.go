@@ -82,7 +82,11 @@ func getRoutes(app *config.Application) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 	v1Routes := r.PathPrefix("/api/v1").Subrouter()
 	userCtrl := controller.NewUser(app)
+	entityCtrl := controller.NewEntity(app)
 	userRoutes := v1Routes.PathPrefix("/users").Subrouter()
+	entityRoutes := v1Routes.PathPrefix("/e").Subrouter()
 	userRoutes.HandleFunc("/create",userCtrl.CreateUser).Methods("POST")
+	entityRoutes.HandleFunc("/signup", entityCtrl.SingUp).Methods("POST")
+	entityRoutes.HandleFunc("/login", entityCtrl.Login).Methods("POST")
 	return r
 }

@@ -2,16 +2,18 @@ package models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/imabg/sync/pkg/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Entity struct {
 	UserId string `json:"userId"`
-	Password string `json:"-" validate:"required"`
+	Password string `json:"password" validate:"required"`
 	OptForPasswordLess bool `json:"optForPasswordLess"`
 	Email string `json:"email" validate:"required,email"`
 	Source string `json:"source"`
@@ -24,25 +26,26 @@ type EntityCtx struct {
 }
 
 var colName = "entities"
-func NewEntity (client mongo.Database) *EntityCtx {
+func NewEntityModel (client mongo.Database) *EntityCtx {
 	return &EntityCtx{
 		col: client.Collection(colName),
 	}
 }
 
-func (e *EntityCtx) Insert(ctx context.Context, data *Entity) (string, error) {
+func (e *EntityCtx) Insert(ctx context.Context, data *Entity) error {
 	data.UserId = uuid.GenerateShortId(8)
 	// Create password
 	err := e.encryptPwd(data)
 	if err != nil {
-		return "", err
+		return  err
 	}
-	res, err := e.col.InsertOne(ctx, &data)
+	data.CreatedAt = time.Now()
+	data.UpdatedAt = time.Now()
+	_, err = e.col.InsertOne(ctx, &data)
 	if err != nil {
-		return "", err
+		return err
 	}
-	r := res.InsertedID.(string)
-	return r,  nil
+	return nil
 }
 
 func (e *EntityCtx) encryptPwd(data *Entity) error {
@@ -51,5 +54,18 @@ func (e *EntityCtx) encryptPwd(data *Entity) error {
 		return err
 	}
 	data.Password = string(bytes)
+	return nil
+}
+
+func (e *EntityCtx) IsPwdCorrect(hashPwd string, currentPlainPwd string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashPwd), []byte(currentPlainPwd))
+	return err == nil	
+}
+
+func (e *EntityCtx) FindOne(ctx context.Context, data bson.M, entity *Entity) error {
+	err := e.col.FindOne(ctx, &data).Decode(entity)
+	if err == nil {
+		return errors.New("User already exists")
+	}
 	return nil
 }
