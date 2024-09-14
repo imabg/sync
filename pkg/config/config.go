@@ -23,6 +23,7 @@ type Env struct {
 	ServerAddr string `mapstructure:"PORT"`
 	MongoURI   string `mapstructure:"MONGO_URI"`
 	DBName string `mapstructure:"DB_NAME"`
+	JwtSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 }
 
 func NewEnv() *Env {

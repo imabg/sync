@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/imabg/sync/internal/config"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/internal/controller"
 	"github.com/imabg/sync/internal/database"
+	"github.com/imabg/sync/pkg/middleware"
 	"github.com/imabg/sync/pkg/validate"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -82,12 +83,13 @@ func createAndStartServer(addr string, handlers http.Handler, app config.Applica
 func getRoutes(app *config.Application) *mux.Router {
 	r := mux.NewRouter().StrictSlash(true)
 	v1Routes := r.PathPrefix("/api/v1").Subrouter()
+	v1Routes.Use(middleware.AuthMiddleware)
+	publicRoutes := r.PathPrefix("/api/v1").Subrouter()
 	userCtrl := controller.NewUser(app)
 	entityCtrl := controller.NewEntity(app)
-	userRoutes := v1Routes.PathPrefix("/users").Subrouter()
-	entityRoutes := v1Routes.PathPrefix("/e").Subrouter()
-	userRoutes.HandleFunc("/create",userCtrl.CreateUser).Methods("POST")
-	entityRoutes.HandleFunc("/signup", entityCtrl.SingUp).Methods("POST")
-	entityRoutes.HandleFunc("/login", entityCtrl.Login).Methods("POST")
+	publicRoutes.HandleFunc("/signup", entityCtrl.SingUp).Methods("POST")
+	publicRoutes.HandleFunc("/login", entityCtrl.Login).Methods("POST")
+	v1Routes.HandleFunc("/users/create", userCtrl.CreateUser).Methods("POST")
+	v1Routes.HandleFunc("/users/get", userCtrl.Get).Methods("GET")
 	return r
 }

@@ -60,3 +60,10 @@ func NotFound(msg string) *CustomError {
 		Msg: msg,
 	}
 }
+
+func AuthorizationError(msg string) *CustomError {
+	return &CustomError{
+		Code: http.StatusUnauthorized,
+		Msg: msg,
+	}
+}

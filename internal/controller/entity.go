@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/imabg/sync/internal/config"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/internal/models"
 	"github.com/imabg/sync/pkg/errors"
 	"github.com/imabg/sync/pkg/response"

@@ -15,6 +15,8 @@ type Entity struct {
 	OptForPasswordLess bool `json:"optForPasswordLess"`
 	Email string `json:"email" validate:"required,email"`
 	Source string `json:"source"`
+	AccessToken string `bson:"accessToken" json:"-"`
+	RefreshToken string `bson:"refreshToken" json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
