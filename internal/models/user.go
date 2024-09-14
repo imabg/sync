@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -58,13 +57,8 @@ func (userCtx *UserCtx) InsertOne(ctx context.Context, data *User) error {
 	return err
 }
 
-func (userCtx *UserCtx) FindOne(ctx context.Context, condition bson.M) error {
-	err := userCtx.col.FindOne(ctx, &condition)
-	// we get err if no document found
-	if err.Err() == nil {
-		return errors.New("User already exists")
-	}
-	return nil
+func (userCtx *UserCtx) FindOne(ctx context.Context, condition bson.M, data *User) error {
+	return userCtx.col.FindOne(ctx, &condition).Decode(data)
 }
 
 func (userCtx *UserCtx) FindOneAndUpdate(ctx context.Context, findCondition bson.M, update *User) error {

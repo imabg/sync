@@ -5,8 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/imabg/sync/internal/config"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/internal/models"
+	"github.com/imabg/sync/pkg/token"
 	"github.com/imabg/sync/pkg/types"
 	"github.com/imabg/sync/pkg/uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -52,16 +53,21 @@ func (e *EntityServiceCtx) FindByEmail (ctx context.Context, email string) (mode
 	return entityData, nil
 }
 
-func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) (types.EntityResp,error) {
+func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) (types.LoginResp,error) {
 	details, err := e.FindByEmail(ctx, loginData.Email)
 	if err != nil {
-		return types.EntityResp{}, err
+		return types.LoginResp{}, err
 	}
 
 	isPwdMatch := e.entityModel.IsPwdCorrect(details.Password, loginData.Password)
 	if !isPwdMatch {
-		return types.EntityResp{}, errors.New("password not correct")
+		return types.LoginResp{}, errors.New("password not correct")
 	}
-	res := types.EntityResp{UserId: details.UserId,Email: details.Email, UpdatedAt: details.UpdatedAt}
+	tokenCtx := token.New(e.config.Env.JwtSecretKey)
+	t, err := tokenCtx.Generate(token.CustomClaimData{UserId: details.UserId, Email: details.Email}, 4 * time.Hour)
+	if err != nil {
+		return types.LoginResp{}, err 
+	}
+	res := types.LoginResp{AccessToken: t.Token, ExpiresAt: t.ExpireAt}
 	return res, nil
 }

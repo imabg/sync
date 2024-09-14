@@ -8,6 +8,11 @@ type EntityResp struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type LoginResp struct {
+	AccessToken string `json:"accessToken"`
+	ExpiresAt time.Time `json:"expireAt"`
+}
+
 type LoginDTO struct {
 	Email string `json:"email"`
 	Password string `json:"password"`

@@ -4,16 +4,19 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/imabg/sync/internal/config"
 	"github.com/imabg/sync/internal/models"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/pkg/errors"
 	"github.com/imabg/sync/pkg/response"
+	"github.com/imabg/sync/pkg/token"
+
 	"github.com/imabg/sync/pkg/validate"
 	"github.com/imabg/sync/services/user"
 )
 
 type IUser interface {
 	CreateUser(http.ResponseWriter, *http.Request)
+	Get(http.ResponseWriter, *http.Request)
 }
 
 type UserCtx struct {
@@ -49,4 +52,17 @@ func(u *UserCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.Send(w, http.StatusCreated, user)
+}
+
+func(u *UserCtx) Get(w http.ResponseWriter, r *http.Request) {
+	claim:= r.Context().Value("claims").(token.CustomClaimData)
+
+	usr, err := u.service.FindByEmail(r.Context(), claim.Email)
+	
+	if err != nil {
+		response.SendWithError(w, http.StatusNotFound, *errors.NotFound(err.Error()))
+		return
+	}
+
+	response.Send(w, http.StatusOK, usr)
 }
