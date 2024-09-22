@@ -2,23 +2,16 @@ package main
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/imabg/sync/pkg/config"
-	"github.com/imabg/sync/internal/controller"
 	"github.com/imabg/sync/internal/database"
-	"github.com/imabg/sync/pkg/middleware"
+	"github.com/imabg/sync/internal/setup"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/pkg/validate"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
-var serverStopCtx context.CancelFunc
-var serverCtx context.Context
+
 
 func main() {
 	env := config.NewEnv()
@@ -41,55 +34,9 @@ func main() {
 		}
 	}(*dbCtx, client)
 	app.MongoClient = dbCtx.GetMongoDatabase(client)
-  stopChan := make(chan os.Signal, 1)
-    signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
-    go func() {
-        <-stopChan
-        app.Log.InfoLog.Info("Stopping server...")
-        serverStopCtx() // Call the serverStopCtx function to stop the server
-    }()
-
-	createAndStartServer(app.Env.ServerAddr, getRoutes(app), *app)
-}
-
-// CreateAndStartServer creates a new server and starting listing
-func createAndStartServer(addr string, handlers http.Handler, app config.Application) error {
-	srv := &http.Server{
-		Addr:         addr,
-		Handler:      handlers,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+	err = setup.CreateAndStartServer(env.ServerAddr, *app)
+	if err != nil {
+		panic(err)
 	}
-	app.Log.InfoLog.Infof("Server started at %s", addr)
-	serverCtx, serverStopCtx = context.WithCancel(context.Background())
-	go func() {
-		<-serverCtx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := srv.Shutdown(shutdownCtx); err != nil {
-			app.Log.ErrorLog.DPanicf("error shutting down server: %v", err)
-		}
-	}()
-
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		app.Log.ErrorLog.DPanicf("error starting server: %v", err)
-		serverStopCtx() // Stop the server
-		return err
-	}
-	return nil
-}
-
-func getRoutes(app *config.Application) *mux.Router {
-	r := mux.NewRouter().StrictSlash(true)
-	v1Routes := r.PathPrefix("/api/v1").Subrouter()
-	v1Routes.Use(middleware.AuthMiddleware)
-	publicRoutes := r.PathPrefix("/api/v1").Subrouter()
-	userCtrl := controller.NewUser(app)
-	entityCtrl := controller.NewEntity(app)
-	publicRoutes.HandleFunc("/signup", entityCtrl.SingUp).Methods("POST")
-	publicRoutes.HandleFunc("/login", entityCtrl.Login).Methods("POST")
-	v1Routes.HandleFunc("/users/create", userCtrl.CreateUser).Methods("POST")
-	v1Routes.HandleFunc("/users/get", userCtrl.Get).Methods("GET")
-	return r
 }
