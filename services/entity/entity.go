@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/internal/models"
+	"github.com/imabg/sync/pkg/config"
 	"github.com/imabg/sync/pkg/token"
 	"github.com/imabg/sync/pkg/types"
 	"github.com/imabg/sync/pkg/uuid"
@@ -70,7 +70,8 @@ func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) 
 	if err != nil {
 		return types.LoginResp{}, err 
 	}
-	err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: "123",IsExpired: false})
+
+	err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: loginData.IPAddr,IsExpired: false, LastUserAgent: loginData.UserAgent})
 
 	if err != nil {
 		return types.LoginResp{}, err

@@ -14,6 +14,7 @@ type Session struct {
 	AccessToken string `json:"access_token" validate:"required"`
 	ExpiredAt time.Time `json:"expired_at" validate:"required"`
 	LastIP string `json:"last_ip" validate:"required"`
+	LastUserAgent string `json:"user_agent"`
 	CreatedAt time.Time `json:"created_at" validate:"required"`
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 	IsExpired bool `json:"is_expired"`
@@ -31,6 +32,7 @@ func NewSessionModel(client mongo.Database) *SessionCtx {
 	}
 }
 
+// TODO: Only create single session against single userId 
 
 func(s *SessionCtx) Create(ctx context.Context, data *Session) error {
 	data.CreatedAt = time.Now()

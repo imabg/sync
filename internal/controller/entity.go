@@ -64,6 +64,8 @@ func(e *EntityCtx) Login(w http.ResponseWriter, r *http.Request) {
 		response.SendWithError(w, http.StatusBadRequest, *errors.BadRequestError(err.Error()))
 		return
 	}
+	login.IPAddr = r.RemoteAddr
+	login.UserAgent = r.Header.Get("User-Agent")
 	eDetail, err := e.service.Login(e.entityCtx, login)
 	if err != nil {
 		response.SendWithError(w, http.StatusBadRequest, *errors.BadRequestError(err.Error()))

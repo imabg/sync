@@ -16,4 +16,6 @@ type LoginResp struct {
 type LoginDTO struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
+	IPAddr string `json:"ip"`
+	UserAgent string `json:"user_agent"`
 }
