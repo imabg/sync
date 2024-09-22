@@ -13,7 +13,7 @@ type User struct {
 	CreatedAt          time.Time            `json:"createdAt"`
 	UpdatedAt          time.Time            `json:"updatedAt"`
 	Email              *string              `json:"email" validate:"required,email"`
-	UserId             string               `json:"userId"`
+	UserId             string               `json:"userId" validate:"required"`
 	Name               *string              `json:"name" validate:"required"`
 	OnboardingTimeline []OnboardingTimeline `json:"onboardingTimeline"`
 }

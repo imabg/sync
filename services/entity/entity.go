@@ -15,6 +15,7 @@ import (
 
 type EntityServiceCtx struct {
 	entityModel *models.EntityCtx
+	sessionModel *models.SessionCtx
 	config config.Application
 	log config.Logger
 }
@@ -22,6 +23,7 @@ type EntityServiceCtx struct {
 func EntityServiceInit(app *config.Application) *EntityServiceCtx {
 	return &EntityServiceCtx{
 		entityModel: models.NewEntityModel(*app.MongoClient),
+		sessionModel: models.NewSessionModel(*app.MongoClient),
 		config: *app,
 		log: app.Log,
 	}
@@ -68,6 +70,13 @@ func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) 
 	if err != nil {
 		return types.LoginResp{}, err 
 	}
+	err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: "123",IsExpired: false})
+
+	if err != nil {
+		return types.LoginResp{}, err
+	}
+
 	res := types.LoginResp{AccessToken: t.Token, ExpiresAt: t.ExpireAt}
+
 	return res, nil
 }
