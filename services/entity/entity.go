@@ -71,7 +71,18 @@ func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) 
 		return types.LoginResp{}, err 
 	}
 
-	err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: loginData.IPAddr,IsExpired: false, LastUserAgent: loginData.UserAgent})
+	var session models.Session
+	e.sessionModel.FindOne(ctx, bson.M{"userid": details.UserId}, &session)
+	if !session.IsExpired && session.UserId != "" {
+		// update existing session
+		session.AccessToken = t.Token
+		session.ExpiredAt = t.ExpireAt
+		session.UpdatedAt = time.Now()
+		updateCond := bson.D{{Key: "$set", Value: bson.D{{Key: "accesstoken", Value: t.Token}, {Key: "updatedhat", Value: time.Now()}, {Key: "expiredat", Value: t.ExpireAt}}}}
+		err = e.sessionModel.FindOneAndUpdate(ctx, bson.M{"userid": details.UserId}, updateCond)	
+	} else  {
+		err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: loginData.IPAddr,IsExpired: false, LastUserAgent: loginData.UserAgent})
+	}
 
 	if err != nil {
 		return types.LoginResp{}, err
