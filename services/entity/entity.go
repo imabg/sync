@@ -72,16 +72,16 @@ func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) 
 	}
 
 	var session models.Session
-	e.sessionModel.FindOne(ctx, bson.M{"userid": details.UserId}, &session)
-	if !session.IsExpired && session.UserId != "" {
+	e.sessionModel.FindOne(ctx, bson.D{{Key: "userid", Value: details.UserId}, {Key: "is_active", Value: true}}, &session)
+	if !session.IsExpired && session.UserId != "" && session.IsActive {
 		// update existing session
 		session.AccessToken = t.Token
 		session.ExpiredAt = t.ExpireAt
 		session.UpdatedAt = time.Now()
-		updateCond := bson.D{{Key: "$set", Value: bson.D{{Key: "accesstoken", Value: t.Token}, {Key: "updatedhat", Value: time.Now()}, {Key: "expiredat", Value: t.ExpireAt}}}}
+		updateCond := bson.D{{Key: "$set", Value: bson.D{{Key: "accesstoken", Value: t.Token}, {Key: "updatedat", Value: time.Now()}, {Key: "expiredat", Value: t.ExpireAt}}}}
 		err = e.sessionModel.FindOneAndUpdate(ctx, bson.M{"userid": details.UserId}, updateCond)	
 	} else  {
-		err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: loginData.IPAddr,IsExpired: false, LastUserAgent: loginData.UserAgent})
+		err = e.sessionModel.Create(ctx, &models.Session{UserId: details.UserId, AccessToken: t.Token, ExpiredAt: t.ExpireAt, LastIP: loginData.IPAddr,IsExpired: false, LastUserAgent: loginData.UserAgent, IsActive: true})
 	}
 
 	if err != nil {

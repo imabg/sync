@@ -11,6 +11,7 @@ import (
 	"github.com/imabg/sync/pkg/token"
 
 	"github.com/imabg/sync/pkg/validate"
+	"github.com/imabg/sync/services/setting"
 	"github.com/imabg/sync/services/user"
 )
 
@@ -22,6 +23,7 @@ type IUser interface {
 type UserCtx struct {
 		userCtx context.Context
 		service user.UserServiceCtx
+		settingService setting.SettingServiceCtx
 		config config.Application
 		log config.Logger
 }
@@ -31,6 +33,7 @@ func NewUser(app *config.Application) IUser {
 	return &UserCtx{
 		config: *app,
 		service: *user.UserServiceInit(app),
+		settingService: *setting.SettingServiceInit(app),
 		userCtx: ctx,
 		log: app.Log,
 	} 
@@ -51,6 +54,9 @@ func(u *UserCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 		response.SendWithError(w, http.StatusInternalServerError, *errors.BadRequestError(err.Error()))
 		return
 	}
+	// Create default setting 
+	go u.settingService.DefaultSetting(u.userCtx, user.UserId)
+
 	response.Send(w, http.StatusCreated, user)
 }
 

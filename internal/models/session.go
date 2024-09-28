@@ -19,6 +19,7 @@ type Session struct {
 	CreatedAt time.Time `json:"created_at" validate:"required"`
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 	IsExpired bool `json:"is_expired"`
+	IsActive bool `json:"is_active" validate:"required"`
 }
 
 type SessionCtx struct {
@@ -42,7 +43,7 @@ func(s *SessionCtx) Create(ctx context.Context, data *Session) error {
 	return err
 }
 
-func(s *SessionCtx) FindOne(ctx context.Context, findCondition bson.M, details *Session) error {
+func(s *SessionCtx) FindOne(ctx context.Context, findCondition bson.D, details *Session) error {
 	return s.col.FindOne(ctx, &findCondition).Decode(details)
 }
 

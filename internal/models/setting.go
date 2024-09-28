@@ -10,10 +10,11 @@ import (
 
 type Setting struct {
 	UserId string `json:"userId" validate:"required"`
+	SettingId string `json:"settingId" validate:"required"`
 	IsOptForDailyDigest bool `json:"isOptForDailyDigest" validate:"required"`
 	Timezone string `json:"timezone" validate:"required"`
 	OptedTime time.Time `json:"optedTime"`
-	MaximumNote int64 `json:"maximumNote"`
+	MaximumNotePerEmail int64 `json:"maximumNotePerEmail"`
 	OptForWeekendSpecial bool `json:"optForWeekendSpecial"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
