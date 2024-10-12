@@ -10,7 +10,7 @@ import (
 )
 
 type UserServiceCtx struct {
-	userModel *models.UserCtx
+	userModel models.IUserEntity
 	config config.Application
 	log config.Logger
 }

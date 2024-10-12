@@ -10,7 +10,7 @@ import (
 )
 
 type SettingServiceCtx struct {
-	settingModel *models.SettingCtx
+	settingModel models.ISettingEntity
 	config config.Application
 	log config.Logger
 }

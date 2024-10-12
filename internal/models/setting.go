@@ -8,6 +8,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type ISettingEntity interface {
+	Create(context.Context, *Setting) error
+	FindOneAndUpdate(context.Context, bson.M, *Setting) error
+}
+
 type Setting struct {
 	UserId string `json:"userId" validate:"required"`
 	SettingId string `json:"settingId" validate:"required"`

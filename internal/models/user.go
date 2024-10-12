@@ -8,6 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type IUserEntity interface {
+	InsertOne(context.Context, *User) error
+	FindOne(context.Context, bson.M, *User) error
+	FindOneAndUpdate(context.Context, bson.M,*User) error
+}
+
 // User schema
 type User struct {
 	CreatedAt          time.Time            `json:"createdAt"`
@@ -15,14 +21,9 @@ type User struct {
 	Email              *string              `json:"email" validate:"required,email"`
 	UserId             string               `json:"userId" validate:"required"`
 	Name               *string              `json:"name" validate:"required"`
-	OnboardingTimeline []OnboardingTimeline `json:"onboardingTimeline"`
+	IsArchived bool `json:"is_archived"`
 }
 
-type OnboardingTimeline struct {
-	Operation   string    `json:"operation"`
-	Completed   bool      `json:"completed"`
-	CompletedAt time.Time `json:"completedAt"`
-}
 
 const col_name = "users"
 
@@ -34,20 +35,6 @@ func NewUserModel(client mongo.Database) *UserCtx {
 
 type UserCtx struct {
 	col *mongo.Collection
-}
-
-func (userCtx *UserCtx) CreateTimelineEvent(op string, done bool) OnboardingTimeline {
-	if !done {
-		return OnboardingTimeline{
-			Operation: op,
-			Completed: done,
-		}
-	}
-	return OnboardingTimeline{
-		Operation:   op,
-		Completed:   done,
-		CompletedAt: time.Now(),
-	}
 }
 
 // InsertOne insert single user record

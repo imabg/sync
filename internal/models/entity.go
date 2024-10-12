@@ -9,6 +9,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type IEntityEntity interface {
+	Insert(context.Context, *Entity) error
+	EncryptPwd(*Entity) error
+	IsPwdCorrect(string, string) bool
+	FindOne(context.Context, bson.M, *Entity) error
+}
+
 type Entity struct {
 	UserId string `json:"userId"`
 	Password string `json:"password" validate:"required"`

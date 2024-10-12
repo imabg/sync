@@ -14,8 +14,8 @@ import (
 )
 
 type EntityServiceCtx struct {
-	entityModel *models.EntityCtx
-	sessionModel *models.SessionCtx
+	entityModel models.IEntityEntity
+	sessionModel models.ISessionEntity
 	config config.Application
 	log config.Logger
 }

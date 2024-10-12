@@ -8,6 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type ISessionEntity interface {
+	Create(context.Context, *Session) error
+	FindOne(context.Context, bson.D, *Session) error
+	FindOneAndUpdate(context.Context, bson.M, bson.D) error
+}
+
 // TODO: support multiple sessions
 
 type Session struct {
