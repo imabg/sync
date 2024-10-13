@@ -16,6 +16,7 @@ import (
 type EntityServiceCtx struct {
 	entityModel models.IEntityEntity
 	sessionModel models.ISessionEntity
+	settingModel models.ISettingEntity
 	config config.Application
 	log config.Logger
 }
@@ -24,6 +25,7 @@ func EntityServiceInit(app *config.Application) *EntityServiceCtx {
 	return &EntityServiceCtx{
 		entityModel: models.NewEntityModel(*app.MongoClient),
 		sessionModel: models.NewSessionModel(*app.MongoClient),
+		settingModel: models.NewSettingModel(*app.MongoClient),
 		config: *app,
 		log: app.Log,
 	}
@@ -60,13 +62,19 @@ func (e *EntityServiceCtx) Login(ctx context.Context, loginData types.LoginDTO) 
 	if err != nil {
 		return types.LoginResp{}, err
 	}
-
+	// active setting data
+	var setting models.Setting
+	setting.UserId = details.UserId
+	err = e.settingModel.FindByUserId(ctx, &setting)
+	if err != nil {
+		return types.LoginResp{}, err
+	}
 	isPwdMatch := e.entityModel.IsPwdCorrect(details.Password, loginData.Password)
 	if !isPwdMatch {
 		return types.LoginResp{}, errors.New("password not correct")
 	}
 	tokenCtx := token.New(e.config.Env.JwtSecretKey)
-	t, err := tokenCtx.Generate(token.CustomClaimData{UserId: details.UserId, Email: details.Email}, 4 * time.Hour)
+	t, err := tokenCtx.Generate(token.CustomClaimData{UserId: details.UserId, Email: details.Email, Setting: setting}, 4 * time.Hour)
 	if err != nil {
 		return types.LoginResp{}, err 
 	}

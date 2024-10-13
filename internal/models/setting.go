@@ -11,18 +11,19 @@ import (
 type ISettingEntity interface {
 	Create(context.Context, *Setting) error
 	FindOneAndUpdate(context.Context, bson.M, *Setting) error
+	FindByUserId(context.Context, *Setting) error
 }
 
 type Setting struct {
-	UserId string `json:"userId" validate:"required"`
-	SettingId string `json:"settingId" validate:"required"`
-	IsOptForDailyDigest bool `json:"isOptForDailyDigest" validate:"required"`
-	Timezone string `json:"timezone" validate:"required"`
-	OptedTime time.Time `json:"optedTime"`
-	MaximumNotePerEmail int64 `json:"maximumNotePerEmail"`
-	OptForWeekendSpecial bool `json:"optForWeekendSpecial"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	UserId               string    `json:"userId" validate:"required" bson:"userId"`
+	SettingId            string    `json:"settingId" validate:"required" bson:"settingId"`
+	IsOptForDailyDigest  bool      `json:"isOptForDailyDigest" validate:"required" bson:"isOptForDailyDigest"`
+	Timezone             string    `json:"timezone" validate:"required" bson:"timezone"`
+	OptedTime            time.Time `json:"optedTime" bson:"optedTime"`
+	MaximumNotePerEmail  int64     `json:"maximumNotePerEmail" bson:"maximumNotePerEmail"`
+	OptForWeekendSpecial bool      `json:"optForWeekendSpecial" bson:"optForWeekendSpecial"`
+	CreatedAt            time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 const settingColName = "settings"
@@ -46,4 +47,8 @@ func (s *SettingCtx) FindOneAndUpdate(ctx context.Context, findCondition bson.M,
 	update.UpdatedAt = time.Now()
 	r := s.col.FindOneAndUpdate(ctx, findCondition, update)
 	return r.Err()
+}
+
+func (s *SettingCtx) FindByUserId(ctx context.Context, data *Setting) error {
+	return s.col.FindOne(ctx, bson.M{"userId": &data.UserId}).Decode(&data)
 }

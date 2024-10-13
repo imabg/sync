@@ -17,14 +17,14 @@ type IEntityEntity interface {
 }
 
 type Entity struct {
-	UserId string `json:"userId"`
-	Password string `json:"password" validate:"required"`
-	OptForPasswordLess bool `json:"optForPasswordLess"`
-	Email string `json:"email" validate:"required,email"`
-	IsEmailVerified bool `json:"isEmailVerified"`
-	Source string `json:"source"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	UserId             string    `json:"userId" bson:"userId"`
+	Password           string    `json:"password" bson:"password" validate:"required"`
+	OptForPasswordLess bool      `json:"optForPasswordLess" bson:"optForPasswordLess"`
+	Email              string    `json:"email" bson:"email" validate:"required,email"`
+	IsEmailVerified    bool      `json:"isEmailVerified" bson:"isEmailVerified"`
+	Source             string    `json:"source" bson:"source"`
+	CreatedAt          time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 type EntityCtx struct {
@@ -32,7 +32,8 @@ type EntityCtx struct {
 }
 
 var colName = "entities"
-func NewEntityModel (client mongo.Database) *EntityCtx {
+
+func NewEntityModel(client mongo.Database) *EntityCtx {
 	return &EntityCtx{
 		col: client.Collection(colName),
 	}
@@ -40,7 +41,7 @@ func NewEntityModel (client mongo.Database) *EntityCtx {
 
 func (e *EntityCtx) Insert(ctx context.Context, data *Entity) error {
 	_, err := e.col.InsertOne(ctx, &data)
-	return err	
+	return err
 }
 
 func (e *EntityCtx) EncryptPwd(data *Entity) error {
@@ -54,9 +55,9 @@ func (e *EntityCtx) EncryptPwd(data *Entity) error {
 
 func (e *EntityCtx) IsPwdCorrect(hashPwd string, currentPlainPwd string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashPwd), []byte(currentPlainPwd))
-	return err == nil	
+	return err == nil
 }
 
-func (e *EntityCtx) FindOne(ctx context.Context, data bson.M, entity *Entity) (error){
+func (e *EntityCtx) FindOne(ctx context.Context, data bson.M, entity *Entity) error {
 	return e.col.FindOne(ctx, &data).Decode(entity)
 }

@@ -11,19 +11,18 @@ import (
 type IUserEntity interface {
 	InsertOne(context.Context, *User) error
 	FindOne(context.Context, bson.M, *User) error
-	FindOneAndUpdate(context.Context, bson.M,*User) error
+	FindOneAndUpdate(context.Context, bson.M, *User) error
 }
 
 // User schema
 type User struct {
-	CreatedAt          time.Time            `json:"createdAt"`
-	UpdatedAt          time.Time            `json:"updatedAt"`
-	Email              *string              `json:"email" validate:"required,email"`
-	UserId             string               `json:"userId" validate:"required"`
-	Name               *string              `json:"name" validate:"required"`
-	IsArchived bool `json:"is_archived"`
+	CreatedAt  time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt" bson:"updatedAt"`
+	Email      *string   `json:"email" validate:"required,email" bson:"email"`
+	UserId     string    `json:"userId" validate:"required" bson:"userId"`
+	Name       *string   `json:"name" validate:"required" bson:"name"`
+	IsArchived bool      `json:"is_archived"`
 }
-
 
 const col_name = "users"
 

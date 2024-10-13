@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/imabg/sync/internal/models"
 	"github.com/imabg/sync/pkg/uuid"
 )
 
@@ -16,6 +17,7 @@ type CustomClaim struct {
 type CustomClaimData struct {
 	UserId string `json:"userId"`
 	Email string `json:"email"`
+	Setting models.Setting `json:"setting"`
 }
 
 type NewToken struct {
