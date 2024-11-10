@@ -19,25 +19,22 @@ type INotebook interface {
 }
 
 type NotebookCtx struct {
-		notebookCtx context.Context
-		service notebook.NotebookSrvCtx
-		config config.Application
-		log config.Logger
+	notebookCtx context.Context
+	service     notebook.NotebookSrvCtx
+	config      config.Application
 }
-
 
 func NewNotebook(app *config.Application) INotebook {
 	ctx := context.Background()
-	return &NotebookCtx {
+	return &NotebookCtx{
 		notebookCtx: ctx,
-		service: *notebook.NotebookServiceInit(app),
-		config: *app,
-		log: app.Log,
+		service:     *notebook.NotebookServiceInit(app),
+		config:      *app,
 	}
 }
 
-func(nCtx *NotebookCtx) CreateNoteBook(w http.ResponseWriter, r *http.Request) {
-	claim:= r.Context().Value("claims").(token.CustomClaimData)
+func (nCtx *NotebookCtx) CreateNoteBook(w http.ResponseWriter, r *http.Request) {
+	claim := r.Context().Value("claims").(token.CustomClaimData)
 	var notebook models.Notebook
 	err := validate.GetPayload(r, &notebook)
 	if err != nil {
@@ -45,7 +42,7 @@ func(nCtx *NotebookCtx) CreateNoteBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	notebook.UserId = claim.UserId
-	err = nCtx.service.New(nCtx.notebookCtx, &notebook)	
+	err = nCtx.service.New(nCtx.notebookCtx, &notebook)
 	if err != nil {
 		response.SendWithError(w, http.StatusBadRequest, *errors.BadRequestError(err.Error()))
 		return
@@ -54,5 +51,5 @@ func(nCtx *NotebookCtx) CreateNoteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nCtx *NotebookCtx) UpdateNoteBook(w http.ResponseWriter, r *http.Request) {
-	
 }
+

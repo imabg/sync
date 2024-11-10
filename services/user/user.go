@@ -11,22 +11,17 @@ import (
 
 type UserServiceCtx struct {
 	userModel models.IUserEntity
-	config config.Application
-	log config.Logger
+	config    config.Application
 }
 
 func UserServiceInit(app *config.Application) *UserServiceCtx {
 	return &UserServiceCtx{
 		userModel: models.NewUserModel(*app.MongoClient),
-		config: *app,
-		log: app.Log,
+		config:    *app,
 	}
 }
 
 func (u *UserServiceCtx) CreateNewUser(ctx context.Context, user *models.User) error {
-	op := "userService.CreateNewUser"
-	u.log.InfoLog.Infof("[UserService]: started %s function", op)
-	defer u.log.InfoLog.Infof("[UserService]: %s function", op)
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	return u.userModel.InsertOne(ctx, user)

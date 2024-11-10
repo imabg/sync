@@ -11,15 +11,13 @@ import (
 
 type SettingServiceCtx struct {
 	settingModel models.ISettingEntity
-	config config.Application
-	log config.Logger
+	config       config.Application
 }
 
 func SettingServiceInit(app *config.Application) *SettingServiceCtx {
 	return &SettingServiceCtx{
 		settingModel: models.NewSettingModel(*app.MongoClient),
-		config: *app,
-		log: app.Log,
+		config:       *app,
 	}
 }
 
@@ -36,5 +34,5 @@ func (s *SettingServiceCtx) DefaultSetting(ctx context.Context, userId string) e
 }
 
 func (s *SettingServiceCtx) FindById(ctx context.Context, id string, setting *models.Setting) {
-
 }
+

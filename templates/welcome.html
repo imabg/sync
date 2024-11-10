@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Sync!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9; /* Light off-white */
+        }
+        .container {
+            width: 100%;
+            background-color: #f9f9f9; /* Light off-white */
+            padding: 20px;
+            text-align: center;
+        }
+        .email-content {
+            max-width: 600px;
+            background-color: #fafafa; /* Off-white */
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            padding: 20px;
+            background-color: #000000; /* Black */
+            color: #ffffff; /* White */
+            text-align: center;
+        }
+        .body {
+            padding: 30px;
+            text-align: left;
+            color: #333333; /* Dark grey */
+        }
+        .button {
+            background-color: #333333; /* Dark grey */
+            color: white; /* White */
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            display: inline-block;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #555555; /* Lighter grey */
+        }
+        .footer {
+            padding: 15px;
+            font-size: 12px;
+            background-color: #f9f9f9; /* Light off-white */
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-content">
+            <div class="header">
+                <h1 style="margin: 0; font-size: 24px;">Welcome to Sync!</h1>
+            </div>
+            <div class="body">
+                <p style="margin: 0; font-size: 16px; line-height: 1.5;">
+                    Dear {{.FullName}},
+                </p>
+                <p style="margin: 10px 0; font-size: 16px; line-height: 1.5;">
+                    We're thrilled to have you onboard with Sync! <br>Thank you for joining us.
+                </p>
+                <p style="margin: 10px 0; font-size: 16px; line-height: 1.5;">
+                    To get started, please click the button below to sign in:
+                </p>
+                <div style="text-align: center;">
+                    <a href="{{.Link}}" class="button">Sign In</a>
+                </div>
+                <p style="margin: 10px 0; font-size: 16px; line-height: 1.5;">
+                    Best regards,<br>
+                    The Sync Team
+                </p>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

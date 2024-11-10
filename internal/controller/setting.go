@@ -13,10 +13,10 @@ import (
 
 type SettingCtx struct {
 	settingCtx context.Context
-	config config.Application
-	log config.Logger
+	config     config.Application
 }
 
 // func NewSetting(app *config.Application) ISetting {
-	
+
 // }
+
